@@ -1,101 +1,115 @@
 document.addEventListener('DOMContentLoaded', () => {
-    initScheduler();
-    initCartActions();
-    initLocationChecker();
+    setupDateValidationLimits();
+    setupInteractiveFormControls();
+    setupRegionalRouteChecker();
+    setupScrollAnimations();
 });
 
 /**
- * 1. Delivery Scheduler Initializer
- * Automatically sets the default date choice to 'Today' and locks historical picks
+ * 1. Date Field Optimization Restraints
+ * Sets safe min boundaries for calendar selections avoiding past day booking
  */
-function initScheduler() {
-    const dateInput = document.getElementById('deliveryDate');
-    const scheduleBtn = document.getElementById('btnSchedule');
+function setupDateValidationLimits() {
+    const targetDateInput = document.getElementById('targetDeliveryDate');
+    if (targetDateInput) {
+        const currentDate = new Date().toISOString().split('T')[0];
+        targetDateInput.min = currentDate;
+        targetDateInput.value = currentDate;
+    }
+}
+
+/**
+ * 2. Form Booking Execution Engine
+ */
+function setupInteractiveFormControls() {
+    const btnSchedule = document.getElementById('btnScheduleAction');
+    const btnOrder = document.getElementById('btnOrderNowAction');
+    const dateInput = document.getElementById('targetDeliveryDate');
+    const slotInput = document.getElementById('targetDeliverySlot');
+
+    if (btnSchedule) {
+        btnSchedule.addEventListener('click', () => {
+            const timeLabel = slotInput.options[slotInput.selectedIndex].text;
+            triggerToastNotification(`Case scheduling logged for ${dateInput.value} during ${timeLabel}.`);
+        });
+    }
+
+    if (btnOrder) {
+        btnOrder.addEventListener('click', () => {
+            triggerToastNotification("Instant delivery priority order initialized. Processing routing queue...");
+        });
+    }
+}
+
+/**
+ * 3. E-commerce Cart Operations Trigger
+ */
+function triggerCartAction(productLineName) {
+    triggerToastNotification(`Success: "${productLineName}" updated in your production checkout context.`);
+}
+
+/**
+ * 4. Regional Logistical Area Verification Handler
+ */
+function setupRegionalRouteChecker() {
+    const verifyBtn = document.getElementById('btnCheckAreaLocation');
+    const areaInput = document.getElementById('routeAreaInput');
+    const outputDisplay = document.getElementById('routeValidationDisplay');
+
+    if (verifyBtn && areaInput && outputDisplay) {
+        verifyBtn.addEventListener('click', () => {
+            const query = areaInput.value.trim();
+
+            if (!query) {
+                outputDisplay.style.display = 'block';
+                outputDisplay.style.color = '#ef4444';
+                outputDisplay.innerHTML = '<i class="fas fa-times-circle"></i> Please enter an area location context or zip code.';
+                return;
+            }
+
+            // Simulating truck route availability pattern matches
+            outputDisplay.style.display = 'block';
+            outputDisplay.style.color = '#2e7d32';
+            outputDisplay.innerHTML = `<i class="fas fa-check-circle"></i> Active Routes Found! 1.5L batch delivery lines serve <strong>"${query}"</strong> daily.`;
+        });
+    }
+}
+
+/**
+ * 5. Animated Counter Statistics Simulation
+ * Increments KPI variables cleanly when section populates
+ */
+function setupScrollAnimations() {
+    const metrics = document.querySelectorAll('.metric-num');
     
-    if (dateInput) {
-        const todayStr = new Date().toISOString().split('T')[0];
-        dateInput.min = todayStr;
-        dateInput.value = todayStr;
-    }
-
-    if (scheduleBtn) {
-        scheduleBtn.addEventListener('click', () => {
-            const chosenDate = dateInput.value;
-            const chosenSlot = document.getElementById('deliverySlot').value;
-            
-            if (!chosenDate) {
-                showToast('Please select a valid configuration date.');
-                return;
+    metrics.forEach(metric => {
+        const targetValue = parseInt(metric.getAttribute('data-target'), 10);
+        let currentStart = 0;
+        const durationSteps = Math.ceil(targetValue / 50);
+        
+        const countTimer = setInterval(() => {
+            currentStart += durationSteps;
+            if (currentStart >= targetValue) {
+                metric.innerText = targetValue.toLocaleString() + '+';
+                clearInterval(countTimer);
+            } else {
+                metric.innerText = currentStart.toLocaleString() + '+';
             }
-            
-            showToast(`Success! 1.5L batch scheduled for ${chosenDate} during the ${chosenSlot.split(' ')[0]} slot.`);
-        });
-    }
-}
-
-/**
- * 2. Simulated Cart Event Listeners
- */
-function initCartActions() {
-    // Standard Purchase Additions
-    const buyButtons = document.querySelectorAll('.btn-buy');
-    buyButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            const productName = e.target.getAttribute('data-item');
-            showToast(`Added: "${productName}" to your orders successfully.`);
-        });
-    });
-
-    // Custom Options Configuration
-    const optionsButtons = document.querySelectorAll('.btn-options');
-    optionsButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            const productName = e.target.getAttribute('data-item');
-            showToast(`Opening parameters for: ${productName}`);
-        });
+        }, 30);
     });
 }
 
 /**
- * 3. Regional Truck Route Verification Simulation
+ * 6. Central Toast notification layer system
  */
-function initLocationChecker() {
-    const checkBtn = document.getElementById('btnCheckArea');
-    const inputField = document.getElementById('locationInput');
-    const outputBox = document.getElementById('availabilityOutput');
+function triggerToastNotification(alertMessageText) {
+    const toastBox = document.getElementById('toastEngineAlert');
+    if (!toastBox) return;
 
-    if (checkBtn && inputField && outputBox) {
-        checkBtn.addEventListener('click', () => {
-            const locationQuery = inputField.value.trim();
+    toastBox.innerText = alertMessageText;
+    toastBox.classList.add('reveal');
 
-            if (!locationQuery) {
-                outputBox.style.display = 'block';
-                outputBox.style.color = '#ef4444'; // Red error alert color
-                outputBox.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please specify a valid region or zip code.';
-                return;
-            }
-
-            // Simulated confirmation response setup
-            outputBox.style.display = 'block';
-            outputBox.style.color = '#166534'; // Green success alert color
-            outputBox.innerHTML = `<i class="fas fa-check-circle"></i> Confirmed! Our regular 1.5L distribution truck routes serve <strong>"${locationQuery}"</strong>. Free shipping handles apply.`;
-        });
-    }
-}
-
-/**
- * 4. Toast UI Alert Engine
- * Triggers a temporary modal popup to feed actions back to the business owner/user
- */
-function showToast(message) {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
-
-    toast.innerText = message;
-    toast.classList.add('active');
-
-    // Automatically dismiss alert after 3.5 seconds pass cleanly
     setTimeout(() => {
-        toast.classList.remove('active');
-    }, 3500);
+        toastBox.classList.remove('reveal');
+    }, 4000);
 }
